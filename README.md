@@ -1,4 +1,6 @@
 [![Build Status](https://travis-ci.org/AndreyBronin/github-progress-tracker.svg?branch=master)](https://travis-ci.org/AndreyBronin/github-progress-tracker)
+[![Go Report Card](https://goreportcard.com/badge/github.com/AndreyBronin/github-progress-tracker)](https://goreportcard.com/report/github.com/AndreyBronin/github-progress-tracker)
+
 
 Github progress tracker
 =======================
