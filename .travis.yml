@@ -1,0 +1,27 @@
+language: go
+
+# Faster container-based builds
+sudo: false
+
+go:
+  - "1.11.x"
+
+env:
+  global:
+    - CGO_ENABLED=0
+    - GORACE="halt_on_error=1"
+    # «For parallel processes running at the same time, try to reduce the number. More than two to four processes should be fine, beyond that, resources are likely to be exhausted.»
+    # https://docs.travis-ci.com/user/common-build-problems/#my-build-script-is-killed-without-any-error
+    - GOMAXPROCS=2
+
+before_install:
+  - "go get -u github.com/golang/dep/cmd/dep"
+  #- "go get -u golang.org/x/tools/cmd/stringer"
+install:
+  - "dep ensure"
+  #- "go generate -x ./..."
+script:
+  - "CGO_ENABLED=1 go test --race --coverprofile=coverage.txt --covermode=atomic ./..."
+  - "go build -o github-progress-tracker cmd/*"
+after_success:
+  - "bash <(curl -s https://codecov.io/bash)"
