@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/AndreyBronin/github-progress-tracker.svg?branch=master)](https://travis-ci.org/AndreyBronin/github-progress-tracker)
+
 Github progress tracker
 =======================
 
