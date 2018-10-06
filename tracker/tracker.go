@@ -1,81 +1,103 @@
+// Copyright © 2015 Steve Francia <spf@spf13.com>.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+// http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 /*
 Package tracker provides functionality to track development progress in selected Github repos
- */
+*/
 package tracker
 
 import (
 	"context"
 	"fmt"
 	"github.com/google/go-github/github"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"gopkg.in/src-d/go-git.v4"
-	"gopkg.in/src-d/go-git.v4/plumbing/object"
-	"log"
 	"os"
-
 )
 
 // Score is
 type Score uint32
 
-type Counters struct{
-	commits uint32
+type Counters struct {
+	commits      uint32
 	contributors uint32
 	pullRequests uint32
 }
 
 // NewGithubTracker creates new tracker
 func NewGithubTracker() (*GithubTracker, error) {
-	return &GithubTracker{client: github.NewClient(nil)}, nil
-
+	storage, err := NewStorage("commits_cache.sqlite3")
+	if err != nil {
+		return nil, err
+	}
+	return &GithubTracker{client: github.NewClient(nil), storage: storage}, nil
 }
 
 type GithubTracker struct {
-	client *github.Client
+	client       *github.Client
 	organization string
-	repos []string
+	repos        []string
+	storage      Storage
 }
 
-
-func (c *GithubTracker) openRepo(organization, name string) (*git.Repository, error) {
+// CloneRepo clones repo from Github opens cached repo
+func (c *GithubTracker) CloneRepo(organization, name string) (*git.Repository, error) {
 	var repo *git.Repository
 	path := fmt.Sprintf("./tmp/%s/%s", organization, name)
 	repo, err := git.PlainOpen(path)
 	if err == nil {
-		repo.Fetch(&git.FetchOptions{Progress:os.Stdout, Force:true})
-
+		log.Infoln("Cache not found, cloning repo...")
+		err = repo.Fetch(&git.FetchOptions{Progress: os.Stdout, Force: true})
+		if err != nil {
+			return nil, err
+		}
 		//w, _ := repo.Worktree()
 		//w.Pull(&git.PullOptions{Progress:os.Stdout, Force:true})
 		return repo, nil
 	}
 
-
 	return git.PlainClone(path, true, &git.CloneOptions{
-		URL: fmt.Sprintf("https://github.com/%s/%s", organization, name),
+		URL:      fmt.Sprintf("https://github.com/%s/%s", organization, name),
 		Progress: os.Stdout,
 	})
 }
 
-func (c *GithubTracker) ProcessRepo(organization, name string) {
-	r, err := c.openRepo(organization, name)
+// ProcessRepo clones repo and collect all commits progress
+func (c *GithubTracker) ProcessRepo(name string, r *git.Repository) {
 
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-
-	iter,_ := r.Log(&git.LogOptions{})
+	iter, _ := r.Log(&git.LogOptions{})
 
 	var counter int
-	iter.ForEach(func (c *object.Commit) error {
+	for {
+		commit, err := iter.Next()
+		if err != nil {
+			break
+		}
+
 		counter++
-		//fmt.Println(counter, c.Author.When, c.Author.Name, c.Hash)
-		return nil
-	})
-	fmt.Println(counter)
+		err = c.storage.SaveCommit(name, commit)
+		if err != nil {
+			log.Println(err.Error())
+		}
+	}
+
+	log.Infof("Commits count: %d", counter)
 }
 
-func (c *GithubTracker)ProcessOrganizationRepos(organization string , names []string) error {
+func (c *GithubTracker) ProcessOrganizationRepos(organization string, names []string) error {
 	for _, n := range names {
-		for page := 0;;page++ {
+		for page := 0; ; page++ {
 
 			pullrequests, _, err := c.client.PullRequests.List(context.Background(), organization, n,
 				&github.PullRequestListOptions{State: "closed", ListOptions: github.ListOptions{Page: page, PerPage: 100}})
@@ -84,7 +106,7 @@ func (c *GithubTracker)ProcessOrganizationRepos(organization string , names []st
 			}
 
 			for _, p := range pullrequests {
-				fmt.Println( p.GetCreatedAt(), p.GetTitle())
+				fmt.Println(p.GetCreatedAt(), p.GetTitle())
 			}
 
 			if len(pullrequests) < 100 {
@@ -96,3 +118,62 @@ func (c *GithubTracker)ProcessOrganizationRepos(organization string , names []st
 	return nil
 }
 
+func (c *GithubTracker) ProcessGithubContributors(organization, name string) error {
+	ctx := context.Background()
+	for page := 0; ; page++ {
+		contributors, _, err := c.client.Repositories.ListContributors(ctx, organization, name, &github.ListContributorsOptions{
+			ListOptions: github.ListOptions{Page: page, PerPage: 100},
+		})
+
+		if err != nil {
+			return errors.Wrap(err, "Failed to get contributors list.")
+		}
+
+		for _, contributor := range contributors {
+			fmt.Println(contributor.GetLogin(), contributor.GetType())
+
+			if contributor.GetType() == "User" {
+				//TODO: c.storage.SaveContributor()
+			}
+		}
+
+		if len(contributors) < 100 {
+			break
+		}
+	}
+
+	return nil
+}
+
+/*
+opt := &github.RepositoryListByOrgOptions{Type: "public"}
+repos, _, err := client.Repositories.ListByOrg(context.Background(), "insolar", opt)
+if err != nil {
+	log.Fatalln(err.Error())
+}
+
+for _, r := range repos {
+	fmt.Println(*r.Name)
+}
+
+events, _ , err := client.Activity.ListRepositoryEvents(context.Background(), "insolar", "insolar", &github.ListOptions{0, 500})
+if err != nil {
+	log.Fatalln(err.Error())
+}
+
+for _, e := range events {
+	fmt.Println(e.GetCreatedAt(), e.GetType(), string(*e.RawPayload))
+}
+*/
+
+//refs, _, _ := collector.client.Git.ListRefs(context.Background(), "insolar", "insolar", &github.ReferenceListOptions{ListOptions: github.ListOptions{0, 500}})
+//for _, r := range refs {
+//	fmt.Println(r.GetObject().GetType())
+//}
+/*
+	err := collector.ProcessOrganizationRepos("insolar", []string{"insolar"})
+	if err != nil {
+		log.Fatalln(err.Error())
+	}
+*/
+//client.Repositories.ListContributors()
