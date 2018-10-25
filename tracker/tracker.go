@@ -35,15 +35,6 @@ type Counters struct {
 	pullRequests uint32
 }
 
-// NewGithubTracker creates new tracker
-func NewGithubTracker() (*GithubTracker, error) {
-	storage, err := NewStorage("commits_cache.sqlite3")
-	if err != nil {
-		return nil, err
-	}
-	return &GithubTracker{client: github.NewClient(nil), storage: storage}, nil
-}
-
 type GithubTracker struct {
 	client       *github.Client
 	organization string
@@ -51,10 +42,19 @@ type GithubTracker struct {
 	storage      Storage
 }
 
+// NewGithubTracker creates new tracker
+func NewGithubTracker() (*GithubTracker, error) {
+	storage, err := NewStorage("commits_cache.sqlite3")
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to init storage")
+	}
+	return &GithubTracker{client: github.NewClient(nil), storage: storage}, nil
+}
+
 // CloneRepo clones repo from Github opens cached repo
-func (c *GithubTracker) CloneRepo(organization, name string) (*git.Repository, error) {
+func (c *GithubTracker) CloneRepo(owner, name string) (*git.Repository, error) {
 	var repo *git.Repository
-	path := fmt.Sprintf("./tmp/%s/%s", organization, name)
+	path := fmt.Sprintf("./github/%s/%s", owner, name)
 	repo, err := git.PlainOpen(path)
 	if err == nil {
 		log.Infoln("Cache not found, cloning repo...")
@@ -68,12 +68,12 @@ func (c *GithubTracker) CloneRepo(organization, name string) (*git.Repository, e
 	}
 
 	return git.PlainClone(path, true, &git.CloneOptions{
-		URL:      fmt.Sprintf("https://github.com/%s/%s", organization, name),
+		URL:      fmt.Sprintf("https://github.com/%s/%s", owner, name),
 		Progress: os.Stdout,
 	})
 }
 
-// ProcessRepo clones repo and collect all commits progress
+// ProcessRepo clones repo and collect all progress data
 func (c *GithubTracker) ProcessRepo(name string, r *git.Repository) {
 
 	iter, _ := r.Log(&git.LogOptions{})
@@ -95,11 +95,39 @@ func (c *GithubTracker) ProcessRepo(name string, r *git.Repository) {
 	log.Infof("Commits count: %d", counter)
 }
 
-func (c *GithubTracker) ProcessOrganizationRepos(organization string, names []string) error {
-	for _, n := range names {
+// getOwnerRepos return all repos of the owner
+func (c *GithubTracker) getOwnerRepos(owner string) ([]string, error) {
+	var result []string
+	for page := 0; ; page++ {
+
+		repos, _, err := c.client.Repositories.List(context.Background(), owner,
+			&github.RepositoryListOptions{
+				Visibility: "public",
+				Sort: "pushed",
+				ListOptions: github.ListOptions{Page: page, PerPage: 100},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		for _, r := range repos {
+			result = append(result, r.GetName())
+		}
+
+		if len(repos) < 100 {
+			break
+		}
+	}
+
+	return result, nil
+}
+
+// ProcessOwnerRepos collects data from all repos of particular owner
+func (c *GithubTracker) ProcessOwnerRepos(owner string, repos []string) error {
+	for _, n := range repos {
 		for page := 0; ; page++ {
 
-			pullrequests, _, err := c.client.PullRequests.List(context.Background(), organization, n,
+			pullrequests, _, err := c.client.PullRequests.List(context.Background(), owner, n,
 				&github.PullRequestListOptions{State: "closed", ListOptions: github.ListOptions{Page: page, PerPage: 100}})
 			if err != nil {
 				return err
@@ -171,7 +199,7 @@ for _, e := range events {
 //	fmt.Println(r.GetObject().GetType())
 //}
 /*
-	err := collector.ProcessOrganizationRepos("insolar", []string{"insolar"})
+	err := collector.ProcessOwnerRepos("insolar", []string{"insolar"})
 	if err != nil {
 		log.Fatalln(err.Error())
 	}

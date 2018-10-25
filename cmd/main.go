@@ -16,7 +16,7 @@
 
 /*
 Package main provides CLI interface based on Cobra and Viper
- */
+*/
 package main
 
 import (

@@ -34,11 +34,12 @@ func NewStorage(filePath string) (Storage, error) {
 
 	db, err := gorm.Open("sqlite3", filePath)
 	if err != nil {
-		return nil, errors.New("failed to connect database")
+		return nil, errors.Wrap(err,"failed to connect database")
 	}
+	db.LogMode(true)
 
 	// Migrate the schema
-	db.AutoMigrate(&Repository{}, &Commit{}, &Contributor{})
+	db.AutoMigrate(&Owner{}, &Repository{}, &Commit{}, &Contributor{})
 	return &sqliteStorage{db: db, database: filePath}, nil
 }
 
@@ -47,38 +48,12 @@ type sqliteStorage struct {
 	db       *gorm.DB
 }
 
-// Commit struct is gorm model which represents commit record in Database
-type Repository struct {
-	gorm.Model
-	Name string
-}
-
-// Commit struct is gorm model which represents commit record in Database
-type Commit struct {
-	gorm.Model
-	Repository Repository `gorm:"foreignkey:RepositoryRefer"`
-	Datetime   string
-	Name       string
-	Hash       string
-}
-
-// Contributor struct is gorm model which represents contributor record in Database
-type Contributor struct {
-	gorm.Model
-	Repository    Repository `gorm:"foreignkey:RepositoryRefer"`
-	GithubID      uint32
-	Login         string
-	URL           string
-	AvatarURL     string
-	Contributions uint32
-}
-
 // SaveCommit inserts commit to database
 func (s *sqliteStorage) SaveCommit(repoName string, commit *object.Commit) error {
 	fmt.Println(commit.Author.When, commit.Author.Name, commit.Hash)
 
 	s.db.Create(&Commit{
-		Datetime: commit.Author.When.String(),
+		Datetime: commit.Author.When,
 		Name:     commit.Author.Name,
 		Hash:     commit.Hash.String(),
 	})
@@ -89,12 +64,17 @@ func (s *sqliteStorage) SaveCommit(repoName string, commit *object.Commit) error
 // SaveCommit inserts contributor to database
 func (s *sqliteStorage) SaveContributor(repoName string, commit *object.Commit) error {
 	fmt.Println(commit.Author.When, commit.Author.Name, commit.Hash)
-
-	s.db.Create(&Commit{
-		Datetime: commit.Author.When.String(),
+/*
+	s.db.Create(&Contributor{
+		Datetime: commit.Author.When,
 		Name:     commit.Author.Name,
 		Hash:     commit.Hash.String(),
 	})
-
+*/
 	return nil
+}
+
+func (s *sqliteStorage) GetCommits() {
+	var v []Commit
+	s.db.Find(&v)
 }

@@ -9,7 +9,7 @@ import (
 )
 
 func TestSqliteStorage_SaveCommit(t *testing.T) {
-	s, err := NewStorage("commits_.db")
+	s, err := NewStorage("~/commits_.db")
 	assert.NoError(t, err)
 
 	err = s.SaveCommit("tmp", &object.Commit{
@@ -19,4 +19,7 @@ func TestSqliteStorage_SaveCommit(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+
 }
+
+//func TestSqliteStorage_
