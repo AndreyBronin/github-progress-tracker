@@ -52,7 +52,6 @@ func createTestRepo(t *testing.T, name string) (*git.Repository, string, error) 
 }
 
 func TestGithubCollector_ProcessRepo(t *testing.T) {
-	//t.Skip("tmp")
 	tracker, err := NewGithubTracker()
 	assert.NoError(t, err)
 

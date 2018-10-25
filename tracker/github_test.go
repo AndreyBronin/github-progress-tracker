@@ -23,6 +23,8 @@ import (
 )
 
 func TestGithubTracker_GetGithubContributors(t *testing.T) {
+	t.Skip("api limits on travis")
+
 	tracker, err := NewGithubTracker()
 	assert.NoError(t, err)
 	contributors, err := tracker.GetGithubContributors("insolar", "insolar")
@@ -31,6 +33,8 @@ func TestGithubTracker_GetGithubContributors(t *testing.T) {
 }
 
 func TestGithubTracker_GetOwnerRepos(t *testing.T) {
+	t.Skip("api limits on travis")
+
 	tracker, err := NewGithubTracker()
 	assert.NoError(t, err)
 
@@ -40,6 +44,8 @@ func TestGithubTracker_GetOwnerRepos(t *testing.T) {
 }
 
 func TestGithubTracker_GetPullRequests(t *testing.T) {
+	t.Skip("api limits on travis")
+
 	tracker, err := NewGithubTracker()
 	assert.NoError(t, err)
 
