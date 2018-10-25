@@ -14,7 +14,7 @@
  *    limitations under the License.
  */
 
-package tracker
+package storage
 
 import (
 	"github.com/jinzhu/gorm"
@@ -32,8 +32,20 @@ type Owner struct {
 // Commit struct is gorm model which represents commit record in Database
 type Repository struct {
 	gorm.Model
-	Owner Owner `gorm:"foreignkey:OrganizationRefer"`
+	Owner Owner `gorm:"foreignkey:OwnerRefer"`
 	Name         string
+}
+
+// Score struct is gorm model which represents score record in Database
+type Score struct {
+	gorm.Model
+	Owner Owner `gorm:"foreignkey:OwnerRefer"`
+	Repository    Repository `gorm:"foreignkey:RepositoryRefer"`
+	Datetime   time.Time
+	Score         uint32
+	CommitCount uint32
+	PullRequestCount uint32
+	IssueCount uint32
 }
 
 // Commit struct is gorm model which represents commit record in Database

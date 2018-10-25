@@ -21,6 +21,7 @@ package tracker
 
 import (
 	"fmt"
+	"github.com/AndreyBronin/github-progress-tracker/storage"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -41,12 +42,12 @@ type GithubTracker struct {
 	client       *github.Client
 	organization string
 	repos        []string
-	storage      Storage
+	storage      storage.Storage
 }
 
 // NewGithubTracker creates new tracker
 func NewGithubTracker() (*GithubTracker, error) {
-	storage, err := NewStorage("commits_cache.sqlite3")
+	storage, err := storage.NewStorage("commits_cache.sqlite3")
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to init storage")
 	}
@@ -54,7 +55,7 @@ func NewGithubTracker() (*GithubTracker, error) {
 }
 
 // NewAuthenticatedGithubTracker creates new tracker with auth
-func NewAuthenticatedGithubTracker(storage Storage) (*GithubTracker, error) {
+func NewAuthenticatedGithubTracker(storage storage.Storage) (*GithubTracker, error) {
 	// httpClient := oauth2.NewClient() // github oauth2
 	return &GithubTracker{client: github.NewClient(nil), storage: storage}, nil
 }
