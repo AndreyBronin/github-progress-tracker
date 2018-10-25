@@ -50,6 +50,12 @@ func NewGithubTracker() (*GithubTracker, error) {
 	return &GithubTracker{client: github.NewClient(nil), storage: storage}, nil
 }
 
+// NewAuthenticatedGithubTracker creates new tracker with auth
+func NewAuthenticatedGithubTracker(storage Storage) (*GithubTracker, error) {
+	// httpClient := oauth2.NewClient() // github oauth2
+	return &GithubTracker{client: github.NewClient(nil), storage: storage}, nil
+}
+
 // CloneRepo clones repo from Github opens cached repo
 func (c *GithubTracker) CloneRepo(owner, name string) (*git.Repository, error) {
 	var repo *git.Repository
@@ -114,37 +120,3 @@ func (c *GithubTracker) ProcessOwnerRepos(owner string, repos []string) error {
 	return nil
 }
 
-
-
-/*
-opt := &github.RepositoryListByOrgOptions{Type: "public"}
-repos, _, err := client.Repositories.ListByOrg(context.Background(), "insolar", opt)
-if err != nil {
-	log.Fatalln(err.Error())
-}
-
-for _, r := range repos {
-	fmt.Println(*r.Name)
-}
-
-events, _ , err := client.Activity.ListRepositoryEvents(context.Background(), "insolar", "insolar", &github.ListOptions{0, 500})
-if err != nil {
-	log.Fatalln(err.Error())
-}
-
-for _, e := range events {
-	fmt.Println(e.GetCreatedAt(), e.GetType(), string(*e.RawPayload))
-}
-*/
-
-//refs, _, _ := collector.client.Git.ListRefs(context.Background(), "insolar", "insolar", &github.ReferenceListOptions{ListOptions: github.ListOptions{0, 500}})
-//for _, r := range refs {
-//	fmt.Println(r.GetObject().GetType())
-//}
-/*
-	err := collector.ProcessOwnerRepos("insolar", []string{"insolar"})
-	if err != nil {
-		log.Fatalln(err.Error())
-	}
-*/
-//client.Repositories.ListContributors()

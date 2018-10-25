@@ -23,6 +23,11 @@ import (
 	"github.com/pkg/errors"
 )
 
+func (c *GithubTracker) GetAPILimits() (*github.RateLimits, error) {
+	limit, _ , err := c.client.RateLimits(context.Background())
+	return limit, err
+}
+
 // GetOwnerRepos return all repos of the owner
 func (c *GithubTracker) GetOwnerRepos(owner string) ([]*github.Repository, error) {
 	result := make([]*github.Repository, 0)
@@ -113,3 +118,5 @@ func (c *GithubTracker) GetIssues(owner, repo string) ([]*github.Issue, error) {
 	}
 	return result, nil
 }
+
+

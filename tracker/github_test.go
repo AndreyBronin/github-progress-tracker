@@ -1,6 +1,7 @@
 package tracker
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"testing"
 )
@@ -30,4 +31,13 @@ func TestGithubTracker_GetPullRequests(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, 0, len(pr))
 
+}
+
+func TestGithubTracker_GetAPILimits(t *testing.T) {
+	tracker, err := NewGithubTracker()
+	assert.NoError(t, err)
+
+	limits, err := tracker.GetAPILimits()
+	assert.NoError(t, err)
+	fmt.Println(limits.String())
 }
