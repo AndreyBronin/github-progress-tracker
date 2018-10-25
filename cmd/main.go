@@ -23,6 +23,20 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+/*
+commands:
+
+github-progress-tracker owner add name
+github-progress-tracker owner list  - all tracked owners
+github-progress-tracker owner repos - all repos of the owner
+
+github-progress-tracker repo list - all tracked repos
+github-progress-tracker repo update
+
+options -v  verbose debug log
+--storage default sqlite3
+ */
+
 func main() {
 	err := rootCmd.Execute()
 	if err != nil {
