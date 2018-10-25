@@ -17,7 +17,6 @@ Package tracker provides functionality to track development progress in selected
 package tracker
 
 import (
-	"context"
 	"fmt"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
@@ -93,85 +92,29 @@ func (c *GithubTracker) ProcessRepo(name string, r *git.Repository) {
 	}
 
 	log.Infof("Commits count: %d", counter)
+
+	// get data from github
 }
 
-// getOwnerRepos return all repos of the owner
-func (c *GithubTracker) getOwnerRepos(owner string) ([]string, error) {
-	var result []string
-	for page := 0; ; page++ {
 
-		repos, _, err := c.client.Repositories.List(context.Background(), owner,
-			&github.RepositoryListOptions{
-				Visibility: "public",
-				Sort: "pushed",
-				ListOptions: github.ListOptions{Page: page, PerPage: 100},
-		})
-		if err != nil {
-			return nil, err
-		}
-
-		for _, r := range repos {
-			result = append(result, r.GetName())
-		}
-
-		if len(repos) < 100 {
-			break
-		}
-	}
-
-	return result, nil
-}
 
 // ProcessOwnerRepos collects data from all repos of particular owner
 func (c *GithubTracker) ProcessOwnerRepos(owner string, repos []string) error {
-	for _, n := range repos {
-		for page := 0; ; page++ {
-
-			pullrequests, _, err := c.client.PullRequests.List(context.Background(), owner, n,
-				&github.PullRequestListOptions{State: "closed", ListOptions: github.ListOptions{Page: page, PerPage: 100}})
-			if err != nil {
-				return err
-			}
-
-			for _, p := range pullrequests {
-				fmt.Println(p.GetCreatedAt(), p.GetTitle())
-			}
-
-			if len(pullrequests) < 100 {
-				break
-			}
-		}
-	}
-
-	return nil
-}
-
-func (c *GithubTracker) ProcessGithubContributors(organization, name string) error {
-	ctx := context.Background()
-	for page := 0; ; page++ {
-		contributors, _, err := c.client.Repositories.ListContributors(ctx, organization, name, &github.ListContributorsOptions{
-			ListOptions: github.ListOptions{Page: page, PerPage: 100},
-		})
-
+	/*
+	var err error
+	if len(repos) == 0 {
+		repos, err  = c.GetOwnerRepos(owner)
 		if err != nil {
-			return errors.Wrap(err, "Failed to get contributors list.")
-		}
-
-		for _, contributor := range contributors {
-			fmt.Println(contributor.GetLogin(), contributor.GetType())
-
-			if contributor.GetType() == "User" {
-				//TODO: c.storage.SaveContributor()
-			}
-		}
-
-		if len(contributors) < 100 {
-			break
+			return errors.Wrap(err, "Failed to GetOwnerRepos.")
 		}
 	}
+*/
+	// TODO: implement me
 
 	return nil
 }
+
+
 
 /*
 opt := &github.RepositoryListByOrgOptions{Type: "public"}

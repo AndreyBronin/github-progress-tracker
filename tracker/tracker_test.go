@@ -50,18 +50,3 @@ func TestGithubCollector_ProcessRepo(t *testing.T) {
 
 }
 
-func TestGithubTracker_ProcessGithubContributors(t *testing.T) {
-	tracker, err := NewGithubTracker()
-	assert.NoError(t, err)
-	tracker.ProcessGithubContributors("andreybronin", "github-progress-tracker")
-}
-
-func TestGithubTracker_getOwnerRepos(t *testing.T) {
-	tracker, err := NewGithubTracker()
-	assert.NoError(t, err)
-
-	repos, err := tracker.getOwnerRepos("AndreyBronin")
-	assert.NoError(t, err)
-	assert.NotEqual(t, 0, len(repos))
-
-}
