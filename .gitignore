@@ -12,3 +12,8 @@
 *.out
 
 .idea
+
+*.sqlite3
+*.db
+
+/bin
