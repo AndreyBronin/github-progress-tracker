@@ -22,6 +22,10 @@ import (
 )
 
 func TestCalculateScore(t *testing.T) {
-	result := CalculateScore(5,5,5)
-	assert.Equal(t, uint32(15), result)
+
+	counters := Counters{Commits: 100, PullRequests: 2, Issues: 5}
+	cf := Coefficients{Commits: 1, PullRequests: 20, Issues: 5}
+
+	result := CalculateScore(counters, cf)
+	assert.Equal(t, uint32(165), result)
 }
