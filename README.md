@@ -1,6 +1,7 @@
 [![Build Status](https://travis-ci.org/AndreyBronin/github-progress-tracker.svg?branch=master)](https://travis-ci.org/AndreyBronin/github-progress-tracker)
 [![Go Report Card](https://goreportcard.com/badge/github.com/AndreyBronin/github-progress-tracker)](https://goreportcard.com/report/github.com/AndreyBronin/github-progress-tracker)
 [![codecov](https://codecov.io/gh/andreybronin/github-progress-tracker/branch/master/graph/badge.svg)](https://codecov.io/gh/andreybronin/github-progress-tracker)
+[![GoDoc](https://godoc.org/github.com/andreybronin/github-progress-tracker?status.svg)](https://godoc.org/github.com/andreybronin/github-progress-tracker)
 
 
 Github progress tracker
