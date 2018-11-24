@@ -18,6 +18,7 @@ package storage
 
 import (
 	"fmt"
+	"github.com/google/go-github/github"
 
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
@@ -28,6 +29,7 @@ import (
 // Storage interface provide methods to store cache and analyze git commits
 type Storage interface {
 	SaveCommit(repoName string, commit *object.Commit) error
+	SavePullRequests(repoName string, pr []*github.PullRequest) error
 }
 
 func NewStorage(filePath string) (Storage, error) {
@@ -57,6 +59,26 @@ func (s *sqliteStorage) SaveCommit(repoName string, commit *object.Commit) error
 		Name:     commit.Author.Name,
 		Hash:     commit.Hash.String(),
 	})
+
+	return nil
+}
+
+func (s *sqliteStorage) SavePullRequests(repoName string, pr []*github.PullRequest) error {
+
+	for _, p := range pr {
+		fmt.Println(p.GetClosedAt(), p.GetID())
+		/*
+			s.db.Create(&PullRequest{
+		Datetime: commit.Author.When,
+		Name:     commit.Author.Name,
+		Hash:     commit.Hash.String(),
+	})
+		 */
+
+	}
+
+
+
 
 	return nil
 }
