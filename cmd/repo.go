@@ -38,7 +38,8 @@ var repoCmd = &cobra.Command{
 			logrus.Fatalln("failed to clone repo")
 		}
 
-		t.ProcessRepo("insolar", repo)
+
+		t.ProcessRepo("insolar", "insolar", repo)
 	},
 }
 

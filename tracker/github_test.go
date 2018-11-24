@@ -52,7 +52,6 @@ func TestGithubTracker_GetPullRequests(t *testing.T) {
 	pr, err := tracker.GetPullRequests("insolar", "insolar")
 	assert.NoError(t, err)
 	assert.NotEqual(t, 0, len(pr))
-
 }
 
 func TestGithubTracker_GetAPILimits(t *testing.T) {

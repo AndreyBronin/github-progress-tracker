@@ -111,13 +111,14 @@ func (c *GithubTracker) ProcessRepo(owner, repo string, r *git.Repository) {
 	if err != nil {
 		log.Errorln(err)
 	}
-
+/*
 	issues, err := c.GetIssues(owner, repo)
 	if err != nil {
 		log.Errorln(err)
 	}
 
 	//c.storage.SaveIssues()
+*/
 }
 
 
