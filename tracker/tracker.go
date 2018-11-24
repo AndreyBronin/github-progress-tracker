@@ -23,7 +23,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/AndreyBronin/github-progress-tracker/storage"
-	"github.com/google/go-github/github"
+	"github.com/google/go-github/v19/github"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
