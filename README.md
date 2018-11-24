@@ -14,8 +14,6 @@ Rating usually based on development progress metrics: Github stars, forks, open 
 It follow the repo progress and collects development metrics.
 
 
-Project is inspired by [CriptoMiso](https://www.cryptomiso.com) and [DPRating](https://dprating.com)
-
 #### Workflow
 
 1. Tracker clones selected repo and then stores all commits history to sqlite database cache.
