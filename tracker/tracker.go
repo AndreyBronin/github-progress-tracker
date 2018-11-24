@@ -20,23 +20,16 @@ Package tracker provides functionality to track development progress in selected
 package tracker
 
 import (
+	"context"
 	"fmt"
 	"github.com/AndreyBronin/github-progress-tracker/storage"
 	"github.com/google/go-github/github"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
 	"gopkg.in/src-d/go-git.v4"
 	"os"
 )
-
-// Score is
-type Score uint32
-
-type Counters struct {
-	commits      uint32
-	contributors uint32
-	pullRequests uint32
-}
 
 type GithubTracker struct {
 	client       *github.Client
@@ -56,8 +49,13 @@ func NewGithubTracker() (*GithubTracker, error) {
 
 // NewAuthenticatedGithubTracker creates new tracker with auth
 func NewAuthenticatedGithubTracker(storage storage.Storage) (*GithubTracker, error) {
-	// httpClient := oauth2.NewClient() // github oauth2
-	return &GithubTracker{client: github.NewClient(nil), storage: storage}, nil
+	token := os.Getenv("GITHUB_TOKEN")
+	ctx := context.Background()
+	ts := oauth2.StaticTokenSource(
+		&oauth2.Token{AccessToken: token},
+	)
+	tc := oauth2.NewClient(ctx, ts)
+	return &GithubTracker{client: github.NewClient(tc), storage: storage}, nil
 }
 
 // CloneRepo clones repo from Github opens cached repo
@@ -83,7 +81,7 @@ func (c *GithubTracker) CloneRepo(owner, name string) (*git.Repository, error) {
 }
 
 // ProcessRepo clones repo and collect all progress data
-func (c *GithubTracker) ProcessRepo(name string, r *git.Repository) {
+func (c *GithubTracker) ProcessRepo(owner, repo string, r *git.Repository) {
 
 	iter, _ := r.Log(&git.LogOptions{})
 
@@ -95,7 +93,7 @@ func (c *GithubTracker) ProcessRepo(name string, r *git.Repository) {
 		}
 
 		counter++
-		err = c.storage.SaveCommit(name, commit)
+		err = c.storage.SaveCommit(repo, commit)
 		if err != nil {
 			log.Println(err.Error())
 		}
@@ -104,6 +102,22 @@ func (c *GithubTracker) ProcessRepo(name string, r *git.Repository) {
 	log.Infof("Commits count: %d", counter)
 
 	// get data from github
+
+	pr, err := c.GetPullRequests(owner, repo)
+	if err != nil {
+		log.Errorln(err)
+	}
+	err = c.storage.SavePullRequests(repo, pr)
+	if err != nil {
+		log.Errorln(err)
+	}
+
+	issues, err := c.GetIssues(owner, repo)
+	if err != nil {
+		log.Errorln(err)
+	}
+
+	//c.storage.SaveIssues()
 }
 
 

@@ -61,7 +61,7 @@ func TestGithubCollector_ProcessRepo(t *testing.T) {
 	//repo, err := tracker.CloneRepo("andreybronin", "github-progress-tracker")
 	assert.NoError(t, err)
 
-	tracker.ProcessRepo("testrepo", repo)
+	tracker.ProcessRepo("insolar","insolar", repo)
 
 }
 
